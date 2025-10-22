@@ -1,0 +1,7 @@
+{
+  "name": "@searchql/parser",
+  "version": "0.0.0",
+  "private": false,
+  "description": "Configurable search query language parser",
+  "license": "MIT"
+}
