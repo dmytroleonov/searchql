@@ -1,7 +1,16 @@
 {
+  "$schema": "https://json.schemastore.org/package",
   "name": "@searchql/parser",
   "version": "0.0.0",
+  "license": "MIT",
   "private": false,
   "description": "Configurable search query language parser",
-  "license": "MIT"
+  "type": "module",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "24.9.1",
+    "typescript": "5.9.3"
+  }
 }

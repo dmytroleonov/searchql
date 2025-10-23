@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "biome check .",
+    "lint:fix": "biome check . --write"
+  },
   "devDependencies": {
     "@biomejs/biome": "2.2.7",
     "turbo": "2.5.8"
