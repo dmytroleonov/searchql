@@ -5,6 +5,11 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "test": {},
+    "test:watch": {
+      "cache": false,
+      "persistent": true
+    },
     "//#lint": {},
     "//#lint:fix": {
       "cache": false

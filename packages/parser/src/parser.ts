@@ -11,7 +11,7 @@ import {
   RParen,
   StringLiteral,
   True,
-} from './lexer.js';
+} from '@/lexer.js';
 
 export class SearchQlParser extends CstParser {
   constructor() {

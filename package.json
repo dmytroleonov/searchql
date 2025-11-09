@@ -5,6 +5,8 @@
   "license": "MIT",
   "scripts": {
     "build": "turbo run build",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
     "lint": "biome check .",
     "lint:fix": "biome check . --write"
   },
