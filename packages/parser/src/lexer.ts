@@ -1,9 +1,4 @@
-import { createToken, Lexer } from 'chevrotain';
-
-const Mode = {
-  Global: 'Global',
-  Value: 'Value',
-} as const;
+import { createToken, type TokenType } from 'chevrotain';
 
 export const Colon = createToken({
   name: 'Colon',
@@ -12,34 +7,29 @@ export const Colon = createToken({
 export const StringLiteral = createToken({
   name: 'StringLiteral',
   pattern: /"(:?[^\\"]|\\(:?[bfnrtv"\\/]|u[0-9a-fA-F]{4}))*"/,
-  pop_mode: true,
 });
 export const NumberLiteral = createToken({
   name: 'NumberLiteral',
   pattern: /-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/,
-  pop_mode: true,
 });
+export const keywordLiteralPattern = /[_A-Za-z][_A-Za-z0-9]*/;
 export const Keyword = createToken({
   name: 'Keyword',
-  pattern: /[_A-Za-z][_A-Za-z0-9]*/,
-  push_mode: Mode.Value,
+  pattern: keywordLiteralPattern,
 });
 export const True = createToken({
   name: 'True',
   pattern: /true/,
-  pop_mode: true,
   longer_alt: Keyword,
 });
 export const False = createToken({
   name: 'False',
   pattern: /false/,
-  pop_mode: true,
   longer_alt: Keyword,
 });
-const WhiteSpace = createToken({
+export const WhiteSpace = createToken({
   name: 'WhiteSpace',
   pattern: /[ \t\n\r]+/,
-  group: Lexer.SKIPPED,
 });
 export const Not = createToken({
   name: 'Not',
@@ -65,47 +55,109 @@ export const RParen = createToken({
   pattern: /\)/,
 });
 
-export const allTokens = [
-  WhiteSpace,
-  StringLiteral,
-  NumberLiteral,
-  True,
-  False,
-  Not,
-  Colon,
-  Or,
-  And,
-  Keyword,
-  LParen,
-  RParen,
-];
+type Prettify<T> = { [K in keyof T]: T[K] } & unknown;
+export type DataType = 'string' | 'number' | 'boolean';
+export type KeywordTypeFactory<
+  TDataType extends DataType,
+  TConfig extends Record<string, unknown> | undefined = undefined,
+> = Prettify<
+  {
+    type: TDataType;
+    alias?: string[];
+  } & (undefined extends TConfig ? { config?: TConfig } : { config: TConfig })
+>;
+export type StringKeywordConfig = undefined;
+export type StringKeywordType = KeywordTypeFactory<
+  'string',
+  StringKeywordConfig
+>;
+export type NumberKeywordConfig = {
+  min?: number;
+  max?: number;
+};
+export type NumberKeywordType = KeywordTypeFactory<
+  'number',
+  NumberKeywordConfig | undefined
+>;
+export type BooleanKeywordConfig = undefined;
+export type BooleanKeywordType = KeywordTypeFactory<
+  'boolean',
+  BooleanKeywordConfig
+>;
+export type AnyKeyword =
+  | StringKeywordType
+  | NumberKeywordType
+  | BooleanKeywordType;
 
-export const SearchQlLexer = new Lexer({
-  modes: {
-    [Mode.Global]: [
-      WhiteSpace,
-      StringLiteral,
-      NumberLiteral,
-      True,
-      False,
-      Not,
-      And,
-      Or,
-      LParen,
-      RParen,
-      Keyword,
-    ],
-    [Mode.Value]: [
-      Colon,
-      StringLiteral,
-      NumberLiteral,
-      True,
-      False,
-      WhiteSpace,
-      Keyword,
-      LParen,
-      RParen,
-    ],
-  },
-  defaultMode: Mode.Global,
-});
+const reservedKeywords = ['true', 'false', 'not', 'or', 'and'];
+
+class SearchQlException extends Error {
+  constructor(message: string) {
+    super('[SearchQl]: ' + message);
+  }
+}
+
+export function validateKeyword(keywordLiteral: string): void {
+  if (reservedKeywords.includes(keywordLiteral)) {
+    throw new SearchQlException(
+      `"${keywordLiteral}" is a reserved keyword and cannot be used as an identifier`,
+    );
+  }
+  if (!keywordLiteralPattern.test(keywordLiteral)) {
+    throw new SearchQlException(
+      `"${keywordLiteral}" is not a valid keyword. Keyword litrals should match the following pattern: "${keywordLiteralPattern}"`,
+    );
+  }
+}
+
+export type CreateKeywordInput = Record<string, AnyKeyword>;
+export type CreatedKeywords<TKeywords extends CreateKeywordInput> = {
+  [K in keyof TKeywords]: {
+    config: TKeywords[K];
+    tokenType: TokenType;
+  };
+};
+
+export function createKeywordToken(keywordLiteral: string): TokenType {
+  return createToken({
+    name: keywordLiteral,
+    pattern: keywordLiteral,
+  });
+}
+
+export function createKeywords<TKeywords extends CreateKeywordInput>(
+  keywords: TKeywords,
+): CreatedKeywords<TKeywords> {
+  const createdKeywords = {} as CreatedKeywords<TKeywords>;
+  const aliasMap = new Map<string, string>();
+  const keywordSet = new Set<string>();
+
+  for (const keywordLiteral in keywords) {
+    keywordSet.add(keywordLiteral);
+    validateKeyword(keywordLiteral);
+    const config = keywords[keywordLiteral];
+
+    for (const alias of config?.alias ?? []) {
+      validateKeyword(alias);
+      if (aliasMap.has(alias)) {
+        const existingKeywordLiteral = aliasMap.get(alias);
+        throw new SearchQlException(
+          `duplicate alias '${alias}' found both in '${existingKeywordLiteral}' and '${keywordLiteral}`,
+        );
+      }
+    }
+
+    for (const [alias, keywordLiteral] of aliasMap.entries()) {
+      if (keywordSet.has(alias)) {
+        throw new SearchQlException(
+          `alias '${alias}' of keyword '${keywordLiteral}' duplicates keyword '${alias}'`,
+        );
+      }
+    }
+
+    const tokenType = createKeywordToken(keywordLiteral);
+    createdKeywords[keywordLiteral] = { config, tokenType };
+  }
+
+  return createdKeywords;
+}
