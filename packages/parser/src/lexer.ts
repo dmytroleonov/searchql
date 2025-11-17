@@ -12,10 +12,9 @@ export const NumberLiteral = createToken({
   name: 'NumberLiteral',
   pattern: /-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/,
 });
-export const keywordLiteralPattern = /[_A-Za-z][_A-Za-z0-9]*/;
 export const Keyword = createToken({
   name: 'Keyword',
-  pattern: keywordLiteralPattern,
+  pattern: /[_A-Za-z][_A-Za-z0-9]*/,
 });
 export const True = createToken({
   name: 'True',
@@ -89,13 +88,15 @@ export type AnyKeyword =
   | NumberKeywordType
   | BooleanKeywordType;
 
-const reservedKeywords = ['true', 'false', 'not', 'or', 'and'];
+export const reservedKeywords = ['true', 'false', 'not', 'or', 'and'];
 
-class SearchQlException extends Error {
+export class SearchQlException extends Error {
   constructor(message: string) {
-    super('[SearchQl]: ' + message);
+    super(`[SearchQl]: ${message}`);
   }
 }
+
+const keywordLiteralPattern = /^[_A-Za-z][_A-Za-z0-9]*$/;
 
 export function validateKeyword(keywordLiteral: string): void {
   if (reservedKeywords.includes(keywordLiteral)) {
