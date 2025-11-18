@@ -1,5 +1,5 @@
 import { createToken, type TokenType } from 'chevrotain';
-import { SearchQlError } from './errors/searchQlError.js';
+import { SearchQlError } from '@/errors/searchQlError.js';
 
 export const Colon = createToken({
   name: 'Colon',
@@ -96,12 +96,12 @@ const keywordLiteralPattern = /^[_A-Za-z][_A-Za-z0-9]*$/;
 export function validateKeyword(keywordLiteral: string): void {
   if (reservedKeywords.includes(keywordLiteral)) {
     throw new SearchQlError(
-      `"${keywordLiteral}" is a reserved keyword and cannot be used as an identifier`,
+      `'${keywordLiteral}' is a reserved keyword and cannot be used as an identifier`,
     );
   }
   if (!keywordLiteralPattern.test(keywordLiteral)) {
     throw new SearchQlError(
-      `"${keywordLiteral}" is not a valid keyword. Keyword litrals should match the following pattern: "${keywordLiteralPattern}"`,
+      `'${keywordLiteral}' is not a valid keyword. Keyword litrals should match the following pattern: '${keywordLiteralPattern}'`,
     );
   }
 }

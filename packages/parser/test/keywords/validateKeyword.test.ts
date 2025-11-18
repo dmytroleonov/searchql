@@ -1,22 +1,22 @@
 import { describe, expect, it } from 'vitest';
+import { SearchQlError } from '@/errors/searchQlError.js';
 import {
   reservedKeywords,
-  SearchQlException,
   validateKeyword,
-} from '@/lexer.js';
+} from '@/keywords/createKeywords.js';
 
 describe('validateKeyword', () => {
   it.each(reservedKeywords)(
-    "rejects reserved keyword: validateKeyword('%s') => SearchQlException",
+    "rejects reserved keyword: validateKeyword('%s') => SearchQlError",
     (reservedKeyword) => {
-      expect(() => validateKeyword(reservedKeyword)).toThrow(SearchQlException);
+      expect(() => validateKeyword(reservedKeyword)).toThrow(SearchQlError);
     },
   );
 
   it.each(['', '123qwe', '👎', '\n', 'with a space'])(
-    "rejects keywords that do not match keyword pattern: validateKeyword('%s') => SearchQlException",
+    "rejects keywords that do not match keyword pattern: validateKeyword('%s') => SearchQlError",
     (invalidKeyword) => {
-      expect(() => validateKeyword(invalidKeyword)).toThrow(SearchQlException);
+      expect(() => validateKeyword(invalidKeyword)).toThrow(SearchQlError);
     },
   );
 
