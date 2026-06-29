@@ -6,7 +6,7 @@ type StringTransformerConfig = {
   max?: number;
 };
 
-export function stringTransform({
+export function stringTransformer({
   min = 0,
   max,
 }: StringTransformerConfig = {}): TransformFn<'string'> {
@@ -77,7 +77,7 @@ export function booleanTransformer(): TransformFn<'boolean'> {
 export function getDefaultTransform(type: DataType): TransformFn<DataType> {
   switch (type) {
     case 'string':
-      return stringTransform();
+      return stringTransformer();
     case 'number':
       return numberTransformer();
     case 'boolean':
